@@ -167,6 +167,8 @@ def main():
                 bytes_data = uploaded_file.read()
                 st.write("filename:", uploaded_file.name)
                 st.write(bytes_data)
+                
+                data_loader(OPENAI_API_KEY)
 
             # # Refresh/Create Index
             # st.header(':yellow[Update index]')

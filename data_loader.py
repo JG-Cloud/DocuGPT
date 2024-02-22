@@ -20,16 +20,17 @@ from langchain_community.vectorstores import FAISS
 ## Import character/text splitter
 from langchain.text_splitter import CharacterTextSplitter
 
+## import app.py
+from app import bytes_data
 
 ## vars
 model = "text-embedding-ada-002"
 
 # Enable to save to disk & reuse the model (for repeated queries on the same data)
 
-if 'mac' in platform.platform():
-    test_dir = '/Users/jatingandhi/Downloads/test_dir'
-else:
-    test_dir = '/mnt/c/Users/jgandhi/OneDrive - Ensono/Downloads/test_dir'
+
+uploaded_file_dataloader = bytes_data
+
 
 # vectorstore path
 vectorstore_path = "./FAISS_DB/faiss_index/"
@@ -48,7 +49,7 @@ def data_loader(OPENAI_API_KEY = None):
         embeddings = OpenAIEmbeddings(openai_api_key=f"{API_KEY}", model=model)
     
     # Doc loader - load on app startup only
-    dir_loader = DirectoryLoader(f"{test_dir}", show_progress=True, use_multithreading=True)
+    dir_loader = DirectoryLoader(f"{uploaded_file_dataloader}", show_progress=True, use_multithreading=True)
     docs = dir_loader.load()    
     
     # # text_splitter
