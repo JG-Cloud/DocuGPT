@@ -1,6 +1,3 @@
-# # python standard mods
-import platform
-
 # suppress python warning messages
 import warnings
 warnings.filterwarnings("ignore")
@@ -8,7 +5,7 @@ warnings.filterwarnings("ignore")
 ### dependencies
 
 ## Import data loaders for a specific doc or Directory
-from langchain_community.document_loaders import TextLoader, DirectoryLoader, UnstructuredWordDocumentLoader, UnstructuredPDFLoader
+from langchain_community.document_loaders import UnstructuredFileLoader
 
 ## Import embeddings
 # from langchain_community.embeddings.openai import OpenAIEmbeddings
@@ -36,7 +33,6 @@ uploaded_file_dataloader = bytes_data
 vectorstore_path = "./FAISS_DB/faiss_index/"
 
 
-
 # body
 
 def data_loader(OPENAI_API_KEY = None):
@@ -49,8 +45,8 @@ def data_loader(OPENAI_API_KEY = None):
         embeddings = OpenAIEmbeddings(openai_api_key=f"{API_KEY}", model=model)
     
     # Doc loader - load on app startup only
-    dir_loader = DirectoryLoader(f"{uploaded_file_dataloader}", show_progress=True, use_multithreading=True)
-    docs = dir_loader.load()    
+    loader = UnstructuredFileLoader(f"{uploaded_file_dataloader}")
+    docs = loader.load()    
     
     # # text_splitter
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)

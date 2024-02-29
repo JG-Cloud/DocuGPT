@@ -25,8 +25,6 @@ from data_loader import data_loader
 ## Import htmlTemplates from local file
 from htmlTemplates import bot_template, user_template, css
 
-
-
 # web framework
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
@@ -154,7 +152,7 @@ def main():
                     API_KEY_CONFIRMED = True
                     os.environ['OPENAI_API_KEY'] = f"{OPENAI_API_KEY}"
 
-                    # Create/Load vectorstore
+                    # # Create/Load vectorstore
                     initialize_vectorstore()
 
                 else:
@@ -163,12 +161,17 @@ def main():
 
             # box to upload files
             uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
-            for uploaded_file in uploaded_files:
-                bytes_data = uploaded_file.read()
-                st.write("filename:", uploaded_file.name)
-                st.write(bytes_data)
+            
+            if uploaded_files:
+                for uploaded_file in uploaded_files:
+                    bytes_data = uploaded_file.read()
+                    st.write("filename:", uploaded_file.name)
+                    st.write(bytes_data)
+                    
+                    # data_loader(OPENAI_API_KEY)
+                    
+                # initialize_vectorstore() # Create/Load vectorstore
                 
-                data_loader(OPENAI_API_KEY)
 
             # # Refresh/Create Index
             # st.header(':yellow[Update index]')
