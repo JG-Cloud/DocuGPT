@@ -1,6 +1,5 @@
 import os, time
 
-
 # suppress python warning messages
 import warnings
 warnings.filterwarnings("ignore")
@@ -9,7 +8,7 @@ warnings.filterwarnings("ignore")
 from langchain_openai import OpenAI
 from langchain_community.llms import OpenAI
 # from langchain_community.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA, ConversationalRetrievalChain
+from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 
 ## Import OPENAI embeddings
@@ -35,20 +34,22 @@ from streamlit_extras.stylable_container import stylable_container
 vectorstore_path = "./FAISS_DB/faiss_index/"
 model = "text-embedding-ada-002"
 
-API_KEY_CONFIRMED = None
+API_KEY_CONFIRMED = False
 
 
 ### data_loader
 
 ## Import data loaders for a specific doc or Directory
-from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import Docx2txtLoader
+from langchain_community.document_loaders import TextLoader
+
+# from langchain_community.document_loaders import UnstructuredFileLoader
 
 ## Import embeddings
 # from langchain_community.embeddings.openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 
-## Import Index with vector DBS/stores
-from langchain_community.vectorstores import FAISS
 
 ## Import character/text splitter
 from langchain.text_splitter import CharacterTextSplitter
@@ -58,7 +59,7 @@ from langchain.text_splitter import CharacterTextSplitter
 def api_key_check(OPENAI_API_KEY):
     if (OPENAI_API_KEY).startswith('sk'):
         st.write(':white_check_mark: Key looks correct')
-        API_KEY_CONFIRMED = True
+        
         os.environ['OPENAI_API_KEY'] = f"{OPENAI_API_KEY}"
     
         return True
@@ -76,14 +77,31 @@ def embeddings():
     
     return embeddings
 
+def load_document(uploaded_files):
+    if uploaded_files is not None:
+        for file in uploaded_files:
+            documents = [file.read().decode()]
+            
+            progress_bar = st.progress(0, text='Loading...')
+            for percent_complete in range(100):
+                time.sleep(0.01)
+                progress_bar.progress(percent_complete + 1, text='Loading...')
+            time.sleep(1)
+            progress_bar.empty()
+            
+            st.write("filename:", file.name)
+            
+            return documents
 
-def initialize_vectorstore(file):
-    print(os.path.dirname(vectorstore_path))
+
+def initialize_vectorstore():
+    # print(os.path.dirname(vectorstore_path))
     if os.path.exists(f'{vectorstore_path}'):
         dir = os.listdir(f"{vectorstore_path}")
+        print(f"len_dir: {len(dir)}")
         if len(dir) == 0:
             # Creating new db/index - importing func from vectordb_loader.py
-            db = vectordb_loader(file)
+            db = vectordb_loader()
         else:
             # if files already exist, just load the existing db in the path
             db = FAISS.load_local(f"{vectorstore_path}", embeddings())
@@ -91,18 +109,22 @@ def initialize_vectorstore(file):
         return db
 
 ## data_loader
-def vectordb_loader(file):
+def vectordb_loader():
     # # define embeddings model
+    print(f"working")
     embeddings = OpenAIEmbeddings(model=model)
 
     # Doc loader - load on app startup only
-    loader = UnstructuredFileLoader(f"{file}")
-    docs = loader.load()    
+    loader = TextLoader(load_document())
+    docs = loader.load()
+
+    print(len(docs))
     
     # # text_splitter
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(docs)    
-    
+    print(f"text splitting")
+    text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=25)
+    texts = text_splitter.create_documents(docs)
+
     
     # # create/load vectorstore to use as index
     # Guidance: https://python.langchain.com/docs/modules/data_connection/retrievers/# vectorstore db persistence TBC
@@ -112,7 +134,7 @@ def vectordb_loader(file):
         texts,
         embedding=embeddings,
     )
-    vector_db.save_local("./FAISS_DB/faiss_index")   
+    vector_db.save_local(f"{vectorstore_path}")
     
     return vector_db
 
@@ -156,7 +178,7 @@ def handle_userinput(query_prompt):
         else:
             st.write(bot_template.replace("{{MSG}}", f"AI: {message.content}"), unsafe_allow_html=True)
 
-
+#################################################
 # main - streamlit logic/web config
 def main():
     st.set_page_config(
@@ -189,51 +211,25 @@ def main():
 
             # Insert API KEY in sidebar box
             OPENAI_API_KEY = st.text_input('Enter OPENAI API Key here:', placeholder='API Key begins with: "sk-"  ', type="password")
-            
-            uploaded_files_title = "Choose a CSV file"
             run_ai_vectordb_task_bool = True
             
-            # deny uploading of files
-            if OPENAI_API_KEY == "":
-                uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True, disabled=True)
-                
-                run_ai_vectordb_task_bool = True
-
-            elif OPENAI_API_KEY:
+            if OPENAI_API_KEY:
                 if api_key_check(OPENAI_API_KEY): # check for API key
-                    
+                    API_KEY_CONFIRMED = True
                     # reveal box to upload files
-                    uploaded_files = st.file_uploader(uploaded_files_title, accept_multiple_files=True, disabled=False)
-                    
-                    if uploaded_files:
-                        run_ai_vectordb_task_bool = False
-                        for file in uploaded_files:
-                            bytes_data = file.read()
+                    uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True, disabled=False)
+                    run_ai_vectordb_task_bool = False
                             
-                            progress_bar = st.progress(0, text='Loading...')
-                            for percent_complete in range(100):
-                                time.sleep(0.01)
-                                progress_bar.progress(percent_complete + 1, text='Loading...')
-                            time.sleep(1)
-                            progress_bar.empty()
-                            
-                            st.write("filename:", file.name)
-                            file_read = bytes_data
-                            
-                
+            # deny uploading of files
+            elif OPENAI_API_KEY == "":
+                uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True, disabled=True)
+                run_ai_vectordb_task_bool = True
+            
             # set button  
             if st.button('Run Docify', disabled=run_ai_vectordb_task_bool):
-                initialize_vectorstore(file_read) # Create/Load vectorstore
+                load_document(uploaded_files)
 
-
-
-            # # Refresh/Create Index
-            # st.header(':yellow[Update index]')
-            # if st.button('Refresh Index'):
-            #     with st.spinner('Refreshing...'):
-            #         time.sleep(5)
-            #         st.write('Testing')
-
+                
             # FAQ TEXT
             st.header(':green[FAQ]')
             st.write('- OPENAI API KEY required to query data.')
@@ -247,34 +243,32 @@ def main():
     st.title("🦜️🔗 Docify GPT")
 
     # Ask user for query
-    query_prompt_container = st.container()
-    with query_prompt_container:
-        with stylable_container(
-            key="query_prompt_container",
-            css_styles="""
-            {
-                position: fixed;
-                bottom: 3rem;
-            }
-            """
-        ):
-            query_prompt = st.text_input('What are you looking for?', placeholder='Search inside my docs... ')
+    # query_prompt_container = st.container()
+    # with query_prompt_container:
+    #     with stylable_container(
+    #         key="query_prompt_container",
+    #         css_styles="""
+    #         {
+    #             position: fixed;
+    #             bottom: 3rem;
+    #         }
+    #         """
+    #     ):
+    query_prompt = st.text_input('What are you looking for?', placeholder='Search inside my docs... ')
+    # Fetch convo history answer from Convo QA Chain
+    if query_prompt and API_KEY_CONFIRMED:
+        # Take history of convo and create the next element
+        conversation = get_convo_chain(initialize_vectorstore())
 
-            # Fetch convo history answer from Convo QA Chain
-            if query_prompt and API_KEY_CONFIRMED:
-                # Take history of convo and create the next element
-                conversation = get_convo_chain(initialize_vectorstore(os.environ['OPENAI_API_KEY']))
+        # persist convo history - to avoid the entire app reloading (vars re-initialising on every button clicked)
+        st.session_state.persistent_conversation = conversation
+        
+        with st.spinner('fetching answer...'):
 
-                # persist convo history - to avoid the entire app reloading (vars re-initialising on every button clicked)
-                st.session_state.persistent_conversation = conversation
-                
-                with st.spinner('fetching answer...'):
+            # Return query answers to the screen
+            handle_userinput(query_prompt)
 
-                    # Return query answers to the screen
-                    handle_userinput(query_prompt)
-
-            elif query_prompt and not API_KEY_CONFIRMED:
-                st.write("Please insert API Key and try again...")
-    
+    elif query_prompt and not API_KEY_CONFIRMED:
+        st.write("Please insert API Key and try again...")
 
 main()
