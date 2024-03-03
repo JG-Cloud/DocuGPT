@@ -17,8 +17,8 @@ from langchain_community.vectorstores import FAISS
 ## Import character/text splitter
 from langchain.text_splitter import CharacterTextSplitter
 
-## import app.py
-from app import bytes_data
+# ## import app.py
+# from app import bytes_data
 
 ## vars
 model = "text-embedding-ada-002"
@@ -35,7 +35,7 @@ vectorstore_path = "./FAISS_DB/faiss_index/"
 
 # body
 
-def data_loader(OPENAI_API_KEY = None):
+def vectordb_loader(OPENAI_API_KEY = None):
     # # define embeddings model
     #Check OPENAI API Key EXISTS
     if OPENAI_API_KEY:
@@ -66,5 +66,6 @@ def data_loader(OPENAI_API_KEY = None):
     return db
 
 
-if __name__ == "__main__":
-    data_loader()
+# if __name__ == "__main__":
+#     data_loader()
+vectordb_loader()

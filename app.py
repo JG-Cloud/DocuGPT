@@ -1,4 +1,4 @@
-import os
+import os, time
 
 
 # suppress python warning messages
@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 # Langchain depedencies
 from langchain_openai import OpenAI
 from langchain_community.llms import OpenAI
-from langchain_community.chat_models import ChatOpenAI
+# from langchain_community.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 
@@ -20,7 +20,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 
 ## Import data loader from local file
-from data_loader import data_loader
+# from data_loader import vectordb_loader
 
 ## Import htmlTemplates from local file
 from htmlTemplates import bot_template, user_template, css
@@ -29,12 +29,46 @@ from htmlTemplates import bot_template, user_template, css
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
+
 ## vars
 # vectorstore path
 vectorstore_path = "./FAISS_DB/faiss_index/"
 model = "text-embedding-ada-002"
 
-### functions
+API_KEY_CONFIRMED = None
+
+
+### data_loader
+
+## Import data loaders for a specific doc or Directory
+from langchain_community.document_loaders import UnstructuredFileLoader
+
+## Import embeddings
+# from langchain_community.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+
+## Import Index with vector DBS/stores
+from langchain_community.vectorstores import FAISS
+
+## Import character/text splitter
+from langchain.text_splitter import CharacterTextSplitter
+## end of data_loader
+
+
+def api_key_check(OPENAI_API_KEY):
+    if (OPENAI_API_KEY).startswith('sk'):
+        st.write(':white_check_mark: Key looks correct')
+        API_KEY_CONFIRMED = True
+        os.environ['OPENAI_API_KEY'] = f"{OPENAI_API_KEY}"
+    
+        return True
+    
+    else:
+        OPENAI_API_KEY = ""
+        st.write(':x: Key is incorrect, please check and re-enter')
+        
+        return False
+
 
 # set embeddings
 def embeddings():
@@ -43,17 +77,46 @@ def embeddings():
     return embeddings
 
 
-def initialize_vectorstore(API_KEY = None):
+def initialize_vectorstore(file):
+    print(os.path.dirname(vectorstore_path))
     if os.path.exists(f'{vectorstore_path}'):
         dir = os.listdir(f"{vectorstore_path}")
         if len(dir) == 0:
-            # Creating new db/index - importing func from data_loader.py
-            db = data_loader(API_KEY)
+            # Creating new db/index - importing func from vectordb_loader.py
+            db = vectordb_loader(file)
         else:
             # if files already exist, just load the existing db in the path
             db = FAISS.load_local(f"{vectorstore_path}", embeddings())
     
-    return db
+        return db
+
+## data_loader
+def vectordb_loader(file):
+    # # define embeddings model
+    embeddings = OpenAIEmbeddings(model=model)
+
+    # Doc loader - load on app startup only
+    loader = UnstructuredFileLoader(f"{file}")
+    docs = loader.load()    
+    
+    # # text_splitter
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(docs)    
+    
+    
+    # # create/load vectorstore to use as index
+    # Guidance: https://python.langchain.com/docs/modules/data_connection/retrievers/# vectorstore db persistence TBC
+
+    # load split text into vectorstore, as set embedding
+    vector_db = FAISS.from_documents(
+        texts,
+        embedding=embeddings,
+    )
+    vector_db.save_local("./FAISS_DB/faiss_index")   
+    
+    return vector_db
+
+### end of data_loader
 
 
 ##  expose this index in a retriever interface.
@@ -94,29 +157,10 @@ def handle_userinput(query_prompt):
             st.write(bot_template.replace("{{MSG}}", f"AI: {message.content}"), unsafe_allow_html=True)
 
 
-### ORIGINAL MISTAKE LEARNINGS
-# # handle user input
-# def handle_userinput(query_prompt):
-#     response = st.session_state.persistent_conversation({'question': query_prompt})
-    
-#     ### I was assigning the response from the AI to st.session_state.chat_history each time, 
-#     ### which would overwrite the previous history. If you want to maintain the history, 
-#     ### you should append the response to the existing chat history instead of assigning it directly.
-#     ### using extend() method
-#     st.session_state.chat_history = response['chat_history']
-
-    
-#     for item, message in enumerate(st.session_state.chat_history):
-#         if item % 2 == 0: #using modulo to take messages which are odd numbers in chat history 
-#             st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-#         else:
-#             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-              
-
 # main - streamlit logic/web config
 def main():
     st.set_page_config(
-        page_title="Jatin's private ChatGPT App",
+        page_title="Jatin's private Doc QA App",
         page_icon=":pushpin:",
         layout="wide",
         initial_sidebar_state="auto",
@@ -134,8 +178,8 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    # initialise vars before use outside of loop
-    API_KEY_CONFIRMED = None
+    # setting file vars
+    file_read = None
     
     # Initialise API key first via sidebar but allowing to ask questions
     side_bar_container = st.container()
@@ -143,35 +187,45 @@ def main():
     with side_bar_container:
         with st.sidebar:
 
-            # Insert API KEY in sidebar box  
+            # Insert API KEY in sidebar box
             OPENAI_API_KEY = st.text_input('Enter OPENAI API Key here:', placeholder='API Key begins with: "sk-"  ', type="password")
-
-            if OPENAI_API_KEY:
-                if (OPENAI_API_KEY).startswith('sk'):
-                    st.write(':white_check_mark: Key looks correct')
-                    API_KEY_CONFIRMED = True
-                    os.environ['OPENAI_API_KEY'] = f"{OPENAI_API_KEY}"
-
-                    # # Create/Load vectorstore
-                    initialize_vectorstore()
-
-                else:
-                    OPENAI_API_KEY = ""
-                    st.write(':x: Key is incorrect, please check and re-enter')
-
-            # box to upload files
-            uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
             
-            if uploaded_files:
-                for uploaded_file in uploaded_files:
-                    bytes_data = uploaded_file.read()
-                    st.write("filename:", uploaded_file.name)
-                    st.write(bytes_data)
-                    
-                    # data_loader(OPENAI_API_KEY)
-                    
-                # initialize_vectorstore() # Create/Load vectorstore
+            uploaded_files_title = "Choose a CSV file"
+            run_ai_vectordb_task_bool = True
+            
+            # deny uploading of files
+            if OPENAI_API_KEY == "":
+                uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True, disabled=True)
                 
+                run_ai_vectordb_task_bool = True
+
+            elif OPENAI_API_KEY:
+                if api_key_check(OPENAI_API_KEY): # check for API key
+                    
+                    # reveal box to upload files
+                    uploaded_files = st.file_uploader(uploaded_files_title, accept_multiple_files=True, disabled=False)
+                    
+                    if uploaded_files:
+                        run_ai_vectordb_task_bool = False
+                        for file in uploaded_files:
+                            bytes_data = file.read()
+                            
+                            progress_bar = st.progress(0, text='Loading...')
+                            for percent_complete in range(100):
+                                time.sleep(0.01)
+                                progress_bar.progress(percent_complete + 1, text='Loading...')
+                            time.sleep(1)
+                            progress_bar.empty()
+                            
+                            st.write("filename:", file.name)
+                            file_read = bytes_data
+                            
+                
+            # set button  
+            if st.button('Run Docify', disabled=run_ai_vectordb_task_bool):
+                initialize_vectorstore(file_read) # Create/Load vectorstore
+
+
 
             # # Refresh/Create Index
             # st.header(':yellow[Update index]')
@@ -221,6 +275,6 @@ def main():
 
             elif query_prompt and not API_KEY_CONFIRMED:
                 st.write("Please insert API Key and try again...")
-        
+    
 
 main()
