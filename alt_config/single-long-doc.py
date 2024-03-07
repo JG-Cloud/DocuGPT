@@ -6,7 +6,7 @@ from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_community.vectorstores import Chroma, faiss
 from langchain_openai import OpenAIEmbeddings
 
-OPENAI_API_KEY="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"
+OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
 
 pdf_loader = PyPDFLoader('/mnt/g/My Drive/Study/Git-Cheatsheet.pdf')
 pdf_docs = pdf_loader.load()

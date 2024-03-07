@@ -7,7 +7,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain_openai import OpenAI
 
 
-OPENAI_API_KEY="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"
+OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
 
 pdf_loader = PyPDFLoader('/mnt/g/My Drive/Study/Git-Cheatsheet.pdf')
 documents = pdf_loader.load()

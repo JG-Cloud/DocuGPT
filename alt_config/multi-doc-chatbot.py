@@ -2,29 +2,39 @@
 
 import os
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import Chroma, faiss
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from langchain_community.vectorstores import faiss
 from langchain_openai import OpenAIEmbeddings
 
-OPENAI_API_KEY="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"
+OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
 
-pdf_loader = PyPDFLoader('/mnt/g/My Drive/Study/Git-Cheatsheet.pdf')
-pdf_docs = pdf_loader.load()
+documents = []
+for file in os.listdir('./alt_config/docs/'):
+    if file.endswith('pdf'):
+        pdf_path = './alt_config/docs/' + file
+        pdf_loader = PyPDFLoader(pdf_path)
+        documents.extend(pdf_loader.load())
 
+    elif file.endswith('txt'):
+        txt_path = './alt_config/docs/' + file
+        txt_loader = TextLoader(txt_path)
+        documents.extend(txt_loader.load())
 
-txt_loader = TextLoader('/mnt/g/My Drive/Study/Kubernetes/EKS notes.txt')
-txt_docs = txt_loader.load()
+    elif file.endswith('doc') or file.endswith('docx'):
+        docx_path = './alt_config/docs/' + file
+        docx_loader = Docx2txtLoader(docx_path)
+        documents.extend(docx_loader.load())
 
 
 # we split the data into chunks of 1,000 characters, with an overlap
 # of 200 characters between the chunks, which helps to give better results
 # and contain the context of the information between chunks
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-documents = text_splitter.split_documents(pdf_docs)
+docs_split = text_splitter.split_documents(documents)
 
 
 vectordb = faiss.FAISS.from_documents(
-    documents=documents,
+    documents=docs_split,
     embedding=OpenAIEmbeddings(api_key=OPENAI_API_KEY),
 )
 
@@ -51,6 +61,12 @@ while True:
     # give us a way to exit the script
     if query == 'exit' or query == 'quit' or query == 'q':
         print('Exiting')
+        # delete docs
+        for file in os.listdir('./alt_config/docs/'):
+            os.remove(f'./alt_config/docs/{file}')
+        # delete vectordb files
+        for file in os.listdir('./alt_config/FAISS_DB/faiss_index/'):
+            os.remove(f'./alt_config/FAISS_DB/faiss_index/{file}')
         sys.exit()
         
     # we pass in the query to the LLM, and print out the response. As well as
