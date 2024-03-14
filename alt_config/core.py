@@ -130,7 +130,7 @@ import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
 ## Import htmlTemplates from local file
-from original_app.htmlTemplates import bot_template, user_template, css
+from htmlTemplates import bot_template, user_template, css
 
 from core import file_loader
 
