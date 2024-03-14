@@ -9,7 +9,7 @@ from langchain_openai import OpenAIEmbeddings
 import streamlit as st
 
 # OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
-
+API_KEY_CONFIRMED = False
 
 def api_key_check(OPENAI_API_KEY):
     if (OPENAI_API_KEY).startswith('sk'):
