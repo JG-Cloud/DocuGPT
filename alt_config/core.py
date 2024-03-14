@@ -6,6 +6,9 @@ from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2t
 from langchain_community.vectorstores import faiss
 from langchain_openai import OpenAIEmbeddings
 
+import streamlit as st
+
+
 OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
 
 documents = []
@@ -18,7 +21,7 @@ def main():
     embed_to_db = embeddings(docs_split)
     chains(embed_to_db)
 
-
+@st.cache_resource  # 👈 Add the caching decorator
 def file_loader(docs_path):
     for file in os.listdir(docs_path):
         if file.endswith('pdf'):
