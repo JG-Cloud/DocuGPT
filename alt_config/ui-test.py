@@ -1,10 +1,26 @@
+import os
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
 ## Import htmlTemplates from local file
-from htmlTemplates import bot_template, user_template, css
+from original_app.htmlTemplates import bot_template, user_template, css
 
 from core import file_loader
+
+
+def api_key_check(OPENAI_API_KEY):
+    if (OPENAI_API_KEY).startswith('sk'):
+        st.write(':white_check_mark: Key looks correct')
+        
+        os.environ['OPENAI_API_KEY'] = f"{OPENAI_API_KEY}"
+    
+        return True
+    
+    else:
+        OPENAI_API_KEY = ""
+        st.write(':x: Key is incorrect, please check and re-enter')
+        
+        return False
 
 
 st.set_page_config(
@@ -96,7 +112,22 @@ with query_prompt_container:
             with st.spinner('fetching answer...'):
 
             # Return query answers to the screen
-            handle_userinput(query_prompt)
+                #handle_userinput(query_prompt)
+ 
+                response = st.session_state.persistent_conversation({'question': query_prompt})
+                # Add session state if set to none, and thereafter if session state exists then
+                # extend the chat history state as msgs are received
+                if st.session_state.chat_history is None:
+                    st.session_state.chat_history = response['chat_history']
+                else:
+                    st.session_state.chat_history.extend(response['chat_history'])
+                    
+                for item, message in reversed(list(enumerate(st.session_state.chat_history))): #reversed array to display messages top down instead of bo
+                    if item % 2 == 0: #using modulo to take messages which are odd numbers in chat history 
+                        st.write(user_template.replace("{{MSG}}", f"ME: {message.content}"), unsafe_allow_html=True)
+                    else:
+                        st.write(bot_template.replace("{{MSG}}", f"AI: {message.content}"), unsafe_allow_html=True)           
 
-            elif query_prompt and not API_KEY_CONFIRMED:
+
+        elif query_prompt and not API_KEY_CONFIRMED:
             st.write("Please insert API Key and try again...")
