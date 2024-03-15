@@ -22,7 +22,7 @@ DocuGPT is a tool built with Streamlit and OpenAI to enable conversational retri
 
 1. Clone the repository.
 2. Install dependencies using `pip install -r requirements.txt`.
-3. Run the application using `streamlit run app.py`.
+3. Run the application using `streamlit run core.py`.
 4. Insert your OpenAI API Key and start querying your documents.
 
 ## Contributing
