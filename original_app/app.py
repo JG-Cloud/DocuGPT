@@ -22,7 +22,7 @@ from langchain_community.vectorstores import FAISS
 # from data_loader import vectordb_loader
 
 ## Import htmlTemplates from local file
-from htmlTemplates import bot_template, user_template, css
+from original_app.htmlTemplates import bot_template, user_template, css
 
 # web framework
 import streamlit as st
