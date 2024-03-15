@@ -14,7 +14,7 @@ from langchain.memory import ConversationBufferMemory
 import streamlit as st
 
 
-API_KEY_CONFIRMED = False
+
 
 def main():
     streamlit_ui()
@@ -131,7 +131,6 @@ def handle_userinput(query_prompt):
 ############################################################
 ## STREAMLIT UI #### 
 
-import os
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 
@@ -140,8 +139,9 @@ from htmlTemplates import bot_template, user_template, css
 
 
 def streamlit_ui():
+    API_KEY_CONFIRMED = False
     st.set_page_config(
-        page_title="Docify",
+        page_title="DocuGPT",
         page_icon=":pushpin:",
         layout="wide",
         initial_sidebar_state="auto",
@@ -181,7 +181,7 @@ def streamlit_ui():
                     run_ai_vectordb_task_bool = False
                     
                     # set button
-                    if st.button('Run Docify', disabled=run_ai_vectordb_task_bool):
+                    if st.button('Run DocuGPT', disabled=run_ai_vectordb_task_bool):
                         file_loader(uploaded_files)
 
 
@@ -203,7 +203,7 @@ def streamlit_ui():
 
 
     # Page title
-    st.title("🦜️🔗 Docify GPT")
+    st.title("🦜️🔗 DocuGPT")
 
 
     #Ask user for query
