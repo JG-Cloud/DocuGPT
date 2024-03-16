@@ -64,12 +64,6 @@ DocuGPT is a webapp tool built with Streamlit and OpenAI to enable conversationa
 2. **Run DocuGPT**: Insert your OpenAI API Key in the sidebar and upload your documents.
 3. **Query Documents**: Enter your search query in the prompt to retrieve relevant information.
 
-## Setup
-
-1. Clone the repository.
-2. Install dependencies using `pip install -r requirements.txt`.
-3. Run the application using `streamlit run core.py`.
-4. Insert your OpenAI API Key and start querying your documents.
 
 ## Future development ideas
 - Add directory browser/selector to choose a directory on your local desktop, to upload files from there.
