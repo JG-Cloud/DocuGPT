@@ -71,6 +71,16 @@ DocuGPT is a tool built with Streamlit and OpenAI to enable conversational retri
 3. Run the application using `streamlit run core.py`.
 4. Insert your OpenAI API Key and start querying your documents.
 
+## Future development ideas
+- Add directory browser/selector to choose a directory on your local desktop, to upload files from there.
+- Add tabs on main page to choose between uploading files and selecting a directory to upload from
+- Add more file types to upload and query
+- Add OAuth to login with Google or Facebook identities, and store user preferences
+- Add light/dark mode
+- Add option to choose a different LLM/provider via drop down menu
+- Add cost of query/embedding 
+
+
 ## Contributing
 
 Contributions are welcome! If you have any ideas for improvements, feel free to open an issue or submit a pull request.
