@@ -34,7 +34,7 @@ def api_key_check(api_key):
         
         return False
 
-@st.cache_resource(ttl="1h")  # 👈 Add the caching decorator
+@st.cache_resource(ttl="1h")
 def file_loader(uploaded_files):
     documents = []
     temp_path = tempfile.TemporaryDirectory()
