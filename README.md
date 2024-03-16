@@ -26,7 +26,7 @@ DocuGPT is a webapp tool built with Streamlit and OpenAI to enable conversationa
 4. Insert your OpenAI API Key and start querying your documents.
 
 ## Design decisions
-- Initially, I had trouble trying to add any uploaded files via streamlit to the vector database to be split,embedded and chunked. The streamlit file uploader uses bytes-IO and caches the uploaded file in memory. I couldn't work out how to stream this into a vectordb. I eventually resorted to saving the uploaded file from memory to a local directory. This wasn't scalable and through some googling I discovered the inbuilt 'tempfile' python module which allowed me to store the files in a temp directory which were removed once the application was stopped or refreshed.
+- Initially, I had trouble trying to add any uploaded files via streamlit to the vector database to be split,embedded and chunked. The streamlit file uploader uses bytes-IO and caches the uploaded file in memory. I couldn't work out how to stream this into a vectordb. I eventually resorted to saving the uploaded file from memory to a local directory before embedding. This wasn't scalable and through some googling I discovered the inbuilt 'tempfile' python module which allowed me to store the files in a temp directory which were removed once the application was stopped or refreshed.
 
 - I started to split the webapp code into smaller files but couldn't find a way of tying streamlit code into the Langchain code. Decided to combine the app code into a single file for now with a view to split at a later date
 
