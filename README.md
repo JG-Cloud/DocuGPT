@@ -31,7 +31,7 @@ DocuGPT is a webapp tool built with Streamlit and OpenAI to enable conversationa
 - I started to split the webapp code into smaller files but couldn't find a way of tying streamlit code into the Langchain code. Decided to combine the app code into a single file for now with a view to split at a later date
 
 ## Files
-- core.py: Contains Langchain application, vectorsb and streamlit UI python code.
+- core.py: Contains Langchain application, vectordb and streamlit UI python code.
 - htmltemplates: Contains the css required for chatbot portion
 - FAISS_DB: A folder location for the vectordb temp files
 - Other folders: Maintain old code, a collection of webpage links which aided in my troubleshooting/ideas and test files.
