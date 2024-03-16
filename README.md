@@ -1,6 +1,5 @@
 # DocuGPT - a webapp to talk with your documents
-
-#### Video Demo: 
+#### Video Demo: https://youtu.be/pW5YDOtv2dQ
 #### Description: Upload any PDF, TXT, DOCX file to the web-app and ask questions about the content using OpenAI LLMs
 
 DocuGPT is a webapp tool built with Streamlit and OpenAI to enable conversational question and answer with AI of information from your documents. It allows you to upload your chosen documents (PDF, TXT or word docs), interactively search and retrieve information from your files using OpenAI's language models. The chat history will be retained during your session  and cleared thereafter. Any data uploaded or queried is kept private as per OpenAI's privacy policy.
