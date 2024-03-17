@@ -73,7 +73,7 @@ DocuGPT is a webapp tool built with Streamlit and OpenAI to enable conversationa
 - Add option to choose a different LLM/provider via drop down menu
 - Add cost of query/embedding 
 
-# Links used to aid with understanding/learning/troubleshooting AI/Streamlit/Langchain libraries;
+## Links used to aid with understanding/learning/troubleshooting AI/Streamlit/Langchain libraries;
 
 https://betterprogramming.pub/building-a-multi-document-reader-and-chatbot-with-langchain-and-chatgpt-d1864d47e339
 
